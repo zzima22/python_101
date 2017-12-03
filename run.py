@@ -65,39 +65,43 @@ def get_page_content(page):
     page_soup = soup(page, "html.parser")
     # print(page_soup.prettify())
     drug_data = page_soup.find_all('div', {"id": "ctl00_MAIN_ContentPlaceHolder_NeedTranslatePanel"})
-    # return drug_data
+    return drug_data
     # print(drug_data)
 
+def get_item_content(drug_data):
+    my_text = []
     for item in drug_data:
         # print(item.contents[1].find_all(['h2']))
         for header in item.contents[1].find_all(['h2']):
-            print(header.get_text())
+            my_text.append(header.get_text())
             for elem in header.next_elements:
                 if elem.name and elem.name.startswith('h'):
                     break
                 if elem.name == 'p':
-                    print(elem.get_text())
-    return
+                    my_text.append(elem.get_text())
+    a = '\n'.join(my_text)
+    return a
 
 
-####################### docx ######################
+####################### main ######################
 
-#in progress....
-
-# from docx import Document
-# doc = Document()
-# my_text = doc.add_paragraph(instruction_text())
-#
-# doc.save('Цибор.docx')
-
-#########
 def main():
     open_xls()
     my_list = open_xls()
-    drug_name = my_list[1]
-    drug_dosage = my_list[2]
+    drug_id, drug_name, drug_dosage = my_list[0], my_list[1], my_list[2]
     my_page = get_page(drug_name, drug_dosage)
-    get_page_content(page=my_page)
+    drug_data = get_page_content(page=my_page)
+    my_text = get_item_content(drug_data)
+    # print(my_text)
+
+######## docx ######
+    def load_to_doc(d):
+        doc = Document()
+        title = '%s інструкція для застосування' % drug_name
+        doc.add_heading('{}'.format(title), level=2)
+        doc.add_paragraph(str(d))
+        doc.save('{}.docx'.format(drug_id))
+    load_to_doc(d=my_text)
 
     # print(drug_name)
 
