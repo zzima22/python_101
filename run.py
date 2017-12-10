@@ -1,7 +1,3 @@
-# я старался очень-очень
-# (ʘ‿ʘ✿)
-# в процессе написания
-# знаю, что лагает - исправлю
 from openpyxl import load_workbook
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,16 +13,16 @@ from bs4 import BeautifulSoup as soup
 def open_xls():
     wb = load_workbook(filename='ADD_py.xlsx')
     ws = wb.get_sheet_by_name('A1')
+    return ws
 
+
+def get_row_content(ws, i):
     my_list = []
 
-    for row in ws.iter_rows(min_row=2, max_col=4, max_row=2):
-        for cell in row:
-            my_list.append(cell.value)
-    # drug_name = my_list[1]
-    # drug_dosage = my_list[2]
+    for cell in ws[i]:
+        my_list.append(cell.value)
     # print(my_list)
-
+    # print(my_list[0])
     return my_list
 ###################### decoder ######################
 
@@ -46,11 +42,20 @@ def get_page(drug_name, drug_dosage):
     search_button.click()
     inst_button = browser.find_element_by_xpath('//*[@id="smart-menu"]/ul/li[1]/a')
     inst_button.click()
-    dosage_button = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="ctl00_HeaderPanel_QueryPanel_ControlsPanel"]/div[1]/div[1]')))
+    banner = wait.until(ec.visibility_of_element_located((By.XPATH, '//*[@id="top-banner-panel"]')))
+    dosage_button = wait.until(ec.element_to_be_clickable(
+        (By.XPATH, '//*[@id="ctl00_HeaderPanel_QueryPanel_ControlsPanel"]/div[1]/div[1]')))
     dosage_button.click()
-    dropdown_list = wait.until(EC.presence_of_element_located((By.XPATH,'//*[@id="ctl00_HeaderPanel_QueryPanel_ControlsPanel"]/div[1]/div[1]/ul')))
-    option = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "%s")]' % drug_dosage))).click()
-    my_page = browser.current_url
+    dropdown_list = browser.find_element_by_xpath('//*[@id="ctl00_HeaderPanel_QueryPanel_ControlsPanel"]/div[1]/div[1]/ul')
+    if dropdown_list.is_displayed():
+        pass
+    else:
+        wait.until(ec.element_to_be_clickable(dosage_button))
+        dosage_button.click()
+    dropdown_list = browser.find_element_by_xpath\
+        ('//*[@id="ctl00_HeaderPanel_QueryPanel_ControlsPanel"]/div[1]/div[1]/ul')
+    option = wait.until(ec.element_to_be_clickable((By.XPATH, '//*[contains(text(), "%s")]' % drug_dosage)))
+    option.click()
     # print(my_page)
     return my_page
 
@@ -86,24 +91,28 @@ def get_item_content(drug_data):
 ####################### main ######################
 
 def main():
-    open_xls()
-    my_list = open_xls()
-    drug_id, drug_name, drug_dosage = my_list[0], my_list[1], my_list[2]
-    my_page = get_page(drug_name, drug_dosage)
-    drug_data = get_page_content(page=my_page)
-    my_text = get_item_content(drug_data)
-    # print(my_text)
+    ws = open_xls()
+    # get_current_row(ws, i=1)
+    i = 2
+    while i in range(2, ws.max_row + 1):
+        my_list = get_row_content(ws, i)
+        # print(my_list)
+        drug_id, drug_name, drug_dosage = my_list[0], my_list[1], my_list[2]
+        my_page = get_page(drug_name, drug_dosage)
+        drug_data = get_page_content(page=my_page)
+        my_text = get_item_content(drug_data)
+        # print(my_text)
 
-######## docx ######
-    def load_to_doc(d):
-        doc = Document()
-        title = '%s інструкція для застосування' % drug_name
-        doc.add_heading('{}'.format(title), level=2)
-        doc.add_paragraph(str(d))
-        doc.save('{}.docx'.format(drug_id))
-    load_to_doc(d=my_text)
+        def load_to_doc(d):
+            doc = Document()
+            title = '%s інструкція для застосування' % drug_name
+            doc.add_heading('{}'.format(title), level=2)
+            doc.add_paragraph(str(d))
+            doc.save('{}.docx'.format(drug_id))
+        load_to_doc(d=my_text)
 
-    # print(drug_name)
+        i += 1
+    print("Completed!")
 
 
 if __name__ == "__main__":
