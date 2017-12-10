@@ -7,7 +7,9 @@ from selenium.webdriver.common.by import By
 import requests
 from bs4 import BeautifulSoup as soup
 
-############### xlsx.opener ###############
+from docx import Document
+
+#xlsx.opener
 
 
 def open_xls():
@@ -24,14 +26,14 @@ def get_row_content(ws, i):
     # print(my_list)
     # print(my_list[0])
     return my_list
-###################### decoder ######################
+
+#decoder
 
 
 def decoder(cod):
     return(cod.decode('cp1251')).encode('utf8')
 
-########### selenium ####################
-# вот здесь она лагает - не всегда догружается элемент(кнопка), в итоге кликать нечего и всё летит к чертям:)
+#selenium
 def get_page(drug_name, drug_dosage):
     browser = webdriver.Chrome(executable_path='C:\Program Files (x86)\Google\Chrome\Application\chromedriver')
     browser.get("https://tabletki.ua/list/")
@@ -59,7 +61,7 @@ def get_page(drug_name, drug_dosage):
     # print(my_page)
     return my_page
 
-######################## Page parsing ######################
+# Page parsing
 
 
 def get_page_content(page):
@@ -88,7 +90,7 @@ def get_item_content(drug_data):
     return a
 
 
-####################### main ######################
+# main
 
 def main():
     ws = open_xls()
