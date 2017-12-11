@@ -114,7 +114,7 @@ def main():
         load_to_doc(d=my_text)
 
         i += 1
-    print("Completed!")
+    print("May the Force be with you!")
 
 
 if __name__ == "__main__":
